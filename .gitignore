@@ -37,3 +37,6 @@ guidelines.md
 
 # cursor plans
 .cursor/plans/
+
+# claude local settings
+.claude/
