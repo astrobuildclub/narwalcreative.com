@@ -3,7 +3,7 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "21"
+  NODE_VERSION = "22"
   # Sanity environment variables worden automatisch geladen vanuit Netlify UI
   # Deze worden hier niet expliciet gedefinieerd, maar zijn beschikbaar tijdens build
 
