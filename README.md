@@ -179,13 +179,15 @@ Volgens de standaard in `~/Code/_standards/SANITY.md`. In de Studio (`/admin`) t
 2. `src/middleware.ts` zet Visual Editing alleen aan als die cookie er is én de request uit een iframe komt (`Sec-Fetch-Dest: iframe`). In een gewone tab zie je dus de live site.
 3. `loadQuery()` (`src/sanity/lib/load-query.ts`) haalt dan drafts op (perspective `drafts`) met token en stega; `DefaultLayout.astro` laadt `<VisualEditing>`.
 
+De cookie is ondertekend met `SANITY_API_READ_TOKEN` en verloopt na 12 uur. In de preview staan de page transitions uit: elke klik is een volledige page load, anders valt Visual Editing weg.
+
 Er is geen `?preview=true` of env-vlag meer om drafts aan te zetten. Haal content altijd op via `loadQuery()`, en gebruik `stegaClean()` (`src/lib/stega-clean.ts`) voor Sanity-strings in logica, classes, URL's of de `<head>`.
 
 Lokaal testen (`npm run dev`):
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4321/api/preview   # 401 zonder secret
-curl -s -H "Cookie: sanity-preview=true" -H "Sec-Fetch-Dest: iframe" http://localhost:4321/ | grep -c astro-island   # ≥1
+curl -s -H "Cookie: sanity-preview=true" -H "Sec-Fetch-Dest: iframe" http://localhost:4321/ | grep -c astro-island   # 0: nagemaakte cookie werkt niet
 ```
 
 ## 🛠️ Tech Stack

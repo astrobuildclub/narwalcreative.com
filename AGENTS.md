@@ -31,4 +31,6 @@ Lees eerst `README.md` voor context en `CHANGELOG.md` voor recente wijzigingen.
 - Geen andere manier toevoegen om drafts aan te zetten (query-parameter, header, env-vlag).
 - Stega: gebruik de helpers in `src/lib/stega-clean.ts` (`cleanString`, `cleanSize`, …) voor Sanity-strings in logica, classes en URL's.
 - Studio op `/admin`, niet `/studio`: de Studio-route gaat vóór `[...uri]` en zou een pagina met slug `studio` blokkeren.
+- De preview-cookie is ondertekend met `SANITY_API_READ_TOKEN` (`src/sanity/lib/visual-editing.ts`); nooit terug naar een vaste waarde als `true`.
+- Page transitions (`ClientRouter`) staan in de Presentation tool uit via `data-astro-reload` (script in `DefaultLayout.astro`): de router haalt pagina's op via `fetch` en dan valt Visual Editing weg.
 - `netlify.toml` stuurt alleen `/api/newsletter` naar de Netlify function. Geen `/api/*`-rewrite terugzetten: dan breekt `/api/preview`.
