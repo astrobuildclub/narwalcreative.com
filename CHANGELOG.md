@@ -1,0 +1,29 @@
+# Changelog
+
+Alle noemenswaardige wijzigingen aan dit project. Nieuwste bovenaan.
+Format gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.1.0/).
+
+Categorieën: **Toegevoegd**, **Gewijzigd**, **Opgelost**, **Verwijderd**, **Beveiliging**, **Onderhoud**.
+
+Eerdere wijzigingen (vóór oktober 2026) staan alleen in de git-geschiedenis.
+
+## [Unreleased]
+
+### Beveiliging
+- Drafts zijn niet langer voor iedereen zichtbaar via `?preview=true`. Visual Editing gaat nu alleen aan via draft mode: `/api/preview` valideert het preview-secret van de Studio (`@sanity/preview-url-secret`) en zet een httpOnly-cookie.
+
+### Gewijzigd
+- Visual Editing staat per request aan (`src/middleware.ts`) in plaats van via `PUBLIC_SANITY_VISUAL_EDITING_ENABLED`, en alleen binnen de iframe van de Presentation tool (`Sec-Fetch-Dest: iframe`).
+- Presentation tool gebruikt `previewMode` (`/api/preview`, `/api/preview/disable`); `?preview=true` weggehaald uit de document-locaties in `resolve.ts`.
+- Perspective `previewDrafts` vervangen door `drafts`.
+- `astro.config.mjs`: `output: 'server'`.
+- Netlify-rewrite beperkt van `/api/*` naar `/api/newsletter`, zodat `/api/preview` een Astro-route blijft.
+- SEO-data wordt met `stegaClean()` schoongemaakt, zodat in de preview geen stega-tekens in `<head>` belanden.
+
+### Verwijderd
+- Env-variabele `PUBLIC_SANITY_VISUAL_EDITING_ENABLED` en de URL-parameter `?preview=true`.
+- `searchParams`-parameter van `loadQuery()`, `getNodeData()`, `getHomeData()`, `getPageData()` en `getProjectData()`.
+
+### Onderhoud
+- `CHANGELOG.md`, `AGENTS.md` en `CLAUDE.md` toegevoegd.
+- `@sanity/preview-url-secret` toegevoegd; `@sanity/client` in de lockfile mee bijgewerkt naar 7.27.

@@ -8,14 +8,11 @@ import WorkDetail from '../components/templates/WorkDetail.astro';
 import Page from '../components/templates/Page.astro';
 import Home from '../components/templates/Home.astro';
 
-export async function getNodeData(
-  slug: string,
-  searchParams?: URLSearchParams,
-) {
+export async function getNodeData(slug: string) {
   // Homepage - alleen Sanity
   if (slug === '/' || slug === '') {
     try {
-      const sanityHome = await getHomeData(searchParams);
+      const sanityHome = await getHomeData();
       return {
         ...sanityHome,
         dataSource: 'sanity',
@@ -32,7 +29,7 @@ export async function getNodeData(
   if (slug.startsWith('/project/')) {
     const projectSlug = slug.replace('/project/', '').replace(/\/$/, ''); // Verwijder trailing slash
     try {
-      const sanityProject = await getProjectData(projectSlug, searchParams);
+      const sanityProject = await getProjectData(projectSlug);
       return {
         ...sanityProject,
         dataSource: 'sanity',
@@ -48,7 +45,7 @@ export async function getNodeData(
   // Andere pages - alleen Sanity
   try {
     const cleanSlug = slug.replace(/^\//, '').replace(/\/$/, '');
-    const sanityPage = await getPageData(cleanSlug, searchParams);
+    const sanityPage = await getPageData(cleanSlug);
     return {
       ...sanityPage,
       dataSource: 'sanity',

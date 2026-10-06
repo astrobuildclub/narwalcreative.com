@@ -9,6 +9,9 @@ import { structure } from './src/sanity/deskStructure';
 import { linkField } from 'sanity-plugin-link-field';
 import seofields from 'sanity-plugin-seofields';
 
+const previewOrigin =
+  typeof location !== 'undefined' ? location.origin : 'http://localhost:4321';
+
 export default defineConfig({
   name: 'narwal-creative',
   title: 'Narwal Creative',
@@ -19,7 +22,15 @@ export default defineConfig({
     structureTool({ structure }),
     presentationTool({
       resolve,
-      previewUrl: location.origin,
+      previewUrl: {
+        initial: previewOrigin,
+        // Zet via /api/preview een cookie; drafts alleen in de Studio-iframe.
+        // Zie ~/Code/_standards/SANITY.md
+        previewMode: {
+          enable: '/api/preview',
+          disable: '/api/preview/disable',
+        },
+      },
     }),
     linkField({
       linkableSchemaTypes: ['page', 'work'],

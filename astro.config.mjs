@@ -61,6 +61,8 @@ export default defineConfig({
     },
   },
 
+  // SSR: Visual Editing toont drafts per request (zie src/middleware.ts)
+  output: 'server',
   adapter: netlify(),
   image: {
     domains: ['cdn.sanity.io'],

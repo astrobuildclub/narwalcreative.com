@@ -15,10 +15,11 @@
   # TypeScript functions worden automatisch gecompileerd
   directory = "netlify/functions"
 
-# Redirect API routes to Netlify functions
+# Newsletter-route naar de Netlify function. Niet /api/* gebruiken:
+# /api/preview en /api/preview/disable zijn Astro-routes (Visual Editing).
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/newsletter"
+  to = "/.netlify/functions/newsletter"
   status = 200
 
 # Headers voor betere caching

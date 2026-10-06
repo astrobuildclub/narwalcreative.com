@@ -18,7 +18,7 @@ export const resolve: PresentationPluginOptions['resolve'] = {
             locations: [
               {
                 title: doc?.title || 'Homepage',
-                href: '/?preview=true',
+                href: '/',
               },
             ],
           };
@@ -28,7 +28,7 @@ export const resolve: PresentationPluginOptions['resolve'] = {
           locations: [
             {
               title: doc?.title || 'Untitled',
-              href: `/${doc?.slug}?preview=true`,
+              href: `/${doc?.slug}`,
             },
           ],
         };
@@ -44,7 +44,7 @@ export const resolve: PresentationPluginOptions['resolve'] = {
         locations: [
           {
             title: doc?.title || 'Untitled Project',
-            href: `/project/${doc?.slug}?preview=true`,
+            href: `/project/${doc?.slug}`,
           },
         ],
       }),

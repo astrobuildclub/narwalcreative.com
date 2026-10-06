@@ -1,6 +1,6 @@
 # Narwal Creative - Astro + Sanity CMS
 
-Modern, toegankelijke website gebouwd met [Astro](https://astro.build) en [Sanity CMS](https://www.sanity.io). Dit project combineert de kracht van static site generation met een flexibel headless CMS voor optimale performance en content management.
+Modern, toegankelijke website gebouwd met [Astro](https://astro.build) en [Sanity CMS](https://www.sanity.io). Dit project combineert server-side rendering op Netlify met een flexibel headless CMS voor optimale performance en content management.
 
 ## ✨ Features
 
@@ -29,7 +29,7 @@ Modern, toegankelijke website gebouwd met [Astro](https://astro.build) en [Sanit
 
 ### 🚀 Performance
 
-- Static site generation met Astro
+- Server-side rendering met Astro (`output: 'server'`) op Netlify
 - Optimized image delivery via Sanity CDN
 - Code splitting en lazy loading
 - Netlify deployment ready
@@ -87,7 +87,7 @@ npm install
    - `PUBLIC_SANITY_PROJECT_ID`: Je Sanity Project ID (vind je in [Sanity Manage](https://www.sanity.io/manage))
    - `PUBLIC_SANITY_DATASET`: Meestal `"production"` of `"development"`
    - `PUBLIC_SANITY_API_VERSION`: API versie (standaard: `"2025-01-28"`)
-   - `SANITY_API_READ_TOKEN`: Alleen nodig voor Visual Editing (optioneel)
+   - `SANITY_API_READ_TOKEN`: server-only read token (rol Viewer), alleen nodig voor Visual Editing. Zonder token werkt de site gewoon, alleen de preview niet.
 
 4. **Vul je Mailchimp credentials in** in `.env`:
    - `MAILCHIMP_API_KEY`: Je Mailchimp API key (vind je in Account → Extras → API keys)
@@ -183,6 +183,23 @@ De site gebruikt **Astro's `ClientRouter`** (`astro:transitions`, zie `src/compo
 
 **Toegankelijkheid:** alle bovenstaande animaties (dim/blur, crossfade, reveal-on-view) respecteren `prefers-reduced-motion: reduce` en tonen content dan direct zonder transitie. De ingebouwde route-announcer van `ClientRouter` blijft ongemoeid voor screenreader-gebruikers.
 
+## ✏️ Visual Editing (live preview)
+
+Volgens de standaard in `~/Code/_standards/SANITY.md`. In de Studio (`/studio`) toont de **Presentation tool** de site met drafts en klikbare overlays; bezoekers zien altijd de gepubliceerde content.
+
+1. De Presentation tool roept `/api/preview` aan met een tijdelijk secret. Dat endpoint valideert het secret met `SANITY_API_READ_TOKEN` en zet de cookie `sanity-preview`.
+2. `src/middleware.ts` zet Visual Editing alleen aan als die cookie er is én de request uit een iframe komt (`Sec-Fetch-Dest: iframe`). In een gewone tab zie je dus de live site.
+3. `loadQuery()` (`src/sanity/lib/load-query.ts`) haalt dan drafts op (perspective `drafts`) met token en stega; `DefaultLayout.astro` laadt `<VisualEditing>`.
+
+Er is geen `?preview=true` of env-vlag meer om drafts aan te zetten. Haal content altijd op via `loadQuery()`, en gebruik `stegaClean()` (`src/lib/stega-clean.ts`) voor Sanity-strings in logica, classes, URL's of de `<head>`.
+
+Lokaal testen (`npm run dev`):
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4321/api/preview   # 401 zonder secret
+curl -s -H "Cookie: sanity-preview=true" -H "Sec-Fetch-Dest: iframe" http://localhost:4321/ | grep -c astro-island   # ≥1
+```
+
 ## 🛠️ Tech Stack
 
 - **Framework**: [Astro](https://astro.build) 5.15.1
@@ -233,6 +250,7 @@ Het project is geconfigureerd voor Netlify deployment:
    - `PUBLIC_SANITY_PROJECT_ID`
    - `PUBLIC_SANITY_DATASET`
    - `PUBLIC_SANITY_API_VERSION`
+   - `SANITY_API_READ_TOKEN` (Secret; contexts Production, Deploy previews én Branch deploys, anders faalt de preview)
    - `MAILCHIMP_API_KEY` (markeer als "Secret" voor beveiliging)
    - `MAILCHIMP_LIST_ID`
 
@@ -242,7 +260,7 @@ Het project is geconfigureerd voor Netlify deployment:
 
 ### Andere platforms
 
-Het project kan ook gedeployed worden naar andere static hosting providers zoals Vercel, Cloudflare Pages, of GitHub Pages.
+Het project draait als SSR-site met `@astrojs/netlify`. Een andere host (Vercel, Cloudflare) vraagt een andere Astro-adapter.
 
 ## 📚 Resources
 
