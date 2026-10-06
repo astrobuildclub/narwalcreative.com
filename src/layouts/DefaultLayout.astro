@@ -279,6 +279,27 @@ const visualEditingEnabled = Astro.locals.visualEditing;
     <CookieConsent />
     <DarkMode />
     <VisualEditing enabled={visualEditingEnabled} />
+    {
+      visualEditingEnabled && (
+        <script is:inline>
+          // Alleen in de Presentation tool: elke klik wordt een volledige
+          // page load i.p.v. een ClientRouter-swap. De router haalt pagina's op
+          // via fetch (Sec-Fetch-Dest: empty), dus zonder Visual Editing; dan
+          // verliest de Studio de verbinding en breekt de preview-URL.
+          // Capture-fase: dit draait vóór de click-handler van de router.
+          document.addEventListener(
+            'click',
+            (event) => {
+              const link =
+                event.target instanceof Element &&
+                event.target.closest('a[href]');
+              if (link) link.setAttribute('data-astro-reload', '');
+            },
+            true,
+          );
+        </script>
+      )
+    }
     <!-- JavaScript bestanden -->
     <script src="/js/cookieconsent.umd.js" is:inline></script>
     <script src="/js/iframemanager.js" is:inline></script>
