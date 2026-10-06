@@ -26,7 +26,7 @@ De `@sanity/orderable-document-list` plugin is succesvol geïmplementeerd! Dit m
 ## Hoe te gebruiken
 
 ### Stap 1: Initialiseer de volgorde
-1. Open Sanity Studio (`/studio`)
+1. Open Sanity Studio (`/admin`)
 2. Ga naar "Projects" in de linker navigatie
 3. Klik op de drie puntjes (menu) rechtsboven
 4. Klik op "Reset Order"

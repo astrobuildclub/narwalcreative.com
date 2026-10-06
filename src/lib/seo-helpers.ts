@@ -1,5 +1,6 @@
 import type { SanitySEO, SanitySiteSettings } from '../sanity/types';
 import { urlForImage } from '../../src/sanity/lib/image';
+import { stegaClean } from '@sanity/client/stega';
 
 /**
  * Helper functie om SEO data op te halen met fallback logica:
@@ -26,7 +27,8 @@ export function getSeoData(
   const seo = pageSeo || siteSettings?.defaultSeo || {};
 
   // Build final SEO object with fallbacks
-  return {
+  // stegaClean: geen Visual Editing-tekens in <head> (title, meta, JSON-LD)
+  return stegaClean({
     title: seo.title || fallbackTitle || siteSettings?.title || 'Page',
     description:
       seo.description || fallbackDescription || siteSettings?.description || '',
@@ -90,7 +92,7 @@ export function getSeoData(
       noIndex: seo.robots?.noIndex || false,
       noFollow: seo.robots?.noFollow || false,
     },
-  };
+  });
 }
 
 /**

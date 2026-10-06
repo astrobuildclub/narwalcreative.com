@@ -4,7 +4,7 @@ import { getNodeData, getTemplateByRoute } from '../lib/routes';
 import { getSiteSettings } from '../lib/sanity';
 import { getSeoData } from '../lib/seo-helpers';
 
-// SSR mode voor Visual Editing support
+// SSR: nodig voor Visual Editing (drafts per request)
 export const prerender = false;
 
 // Dynamische parameter ophalen
@@ -13,10 +13,6 @@ const slug = uri ? `/${uri}/` : '/';
 
 // API routes worden afgehandeld door Netlify functions
 // Laat Netlify deze routes verwerken - niet onderscheppen hier
-
-// Haal searchParams op voor Visual Editing (preview mode)
-const requestUrl = new URL(Astro.request.url);
-const searchParams = requestUrl.searchParams;
 
 function isNotFoundError(error: unknown): boolean {
   return (
@@ -31,7 +27,7 @@ let node: Awaited<ReturnType<typeof getNodeData>> | null = null;
 let Template: ReturnType<typeof getTemplateByRoute> | null = null;
 
 try {
-  node = await getNodeData(slug, searchParams);
+  node = await getNodeData(slug);
   Template = getTemplateByRoute(node);
 } catch (error) {
   if (isNotFoundError(error)) {

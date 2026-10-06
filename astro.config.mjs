@@ -14,7 +14,8 @@ const { PUBLIC_SANITY_PROJECT_ID, PUBLIC_SANITY_DATASET } = loadEnv(
 );
 
 export default defineConfig({
-  site: 'https://narwal.netlify.app',
+  // TODO bij livegang: https://narwalcreative.com
+  site: 'https://narwalcreative.netlify.app',
 
   // Prefetch: with ClientRouter, prefetch is on by default. Use viewport strategy
   // so links are prefetched when visible (nav links = immediately), making clicks feel instant.
@@ -28,9 +29,11 @@ export default defineConfig({
       dataset: PUBLIC_SANITY_DATASET,
       useCdn: false,
       apiVersion: '2025-01-28',
-      studioBasePath: '/studio',
+      // /admin i.p.v. /studio: deze route gaat vóór [...uri], dus een pagina
+      // met slug 'studio' zou onbereikbaar worden.
+      studioBasePath: '/admin',
       stega: {
-        studioUrl: '/studio',
+        studioUrl: '/admin',
       },
     }),
     react(),
@@ -61,6 +64,8 @@ export default defineConfig({
     },
   },
 
+  // SSR: Visual Editing toont drafts per request (zie src/middleware.ts)
+  output: 'server',
   adapter: netlify(),
   image: {
     domains: ['cdn.sanity.io'],
