@@ -17,8 +17,13 @@ Eerdere wijzigingen (vóór oktober 2026) staan alleen in de git-geschiedenis.
 - Presentation tool gebruikt `previewMode` (`/api/preview`, `/api/preview/disable`); `?preview=true` weggehaald uit de document-locaties in `resolve.ts`.
 - Perspective `previewDrafts` vervangen door `drafts`.
 - `astro.config.mjs`: `output: 'server'`.
+- Studio verplaatst van `/studio` naar `/admin` (standaard; voorkomt botsing met een pagina met slug `studio`).
+- In de gedeployde Studio op `*.sanity.studio` wijst de Presentation tool naar de site in plaats van naar sanity.studio.
 - Netlify-rewrite beperkt van `/api/*` naar `/api/newsletter`, zodat `/api/preview` een Astro-route blijft.
 - SEO-data wordt met `stegaClean()` schoongemaakt, zodat in de preview geen stega-tekens in `<head>` belanden.
+
+### Opgelost
+- `site` in `astro.config.mjs` wees naar `narwal.netlify.app` (bestaat niet); nu `narwalcreative.netlify.app`. Canonical- en `og:url` kloppen weer.
 
 ### Verwijderd
 - Env-variabele `PUBLIC_SANITY_VISUAL_EDITING_ENABLED` en de URL-parameter `?preview=true`.

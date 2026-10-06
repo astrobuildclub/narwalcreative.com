@@ -5,7 +5,7 @@ Lees eerst `README.md` voor context en `CHANGELOG.md` voor recente wijzigingen.
 
 ## Project
 - Klant: Narwal Creative · Bedrijf: All This · SLA: TODO
-- Stack: Astro 5, Sanity 4 (Studio op `/studio`), Netlify SSR, Node 22 (zie `.nvmrc`)
+- Stack: Astro 5, Sanity 4 (Studio op `/admin`), Netlify SSR, Node 22 (zie `.nvmrc`)
 
 ## Werkwijze
 - Werk nooit direct op `main`. Branch → PR → deploy preview → merge.
@@ -30,4 +30,5 @@ Lees eerst `README.md` voor context en `CHANGELOG.md` voor recente wijzigingen.
 - Visual Editing volgens `~/Code/_standards/SANITY.md`; content altijd via `loadQuery()` (`src/sanity/lib/load-query.ts`). Sanity-bestanden staan in `src/sanity/lib/`, niet in `src/lib/sanity/`.
 - Geen andere manier toevoegen om drafts aan te zetten (query-parameter, header, env-vlag).
 - Stega: gebruik de helpers in `src/lib/stega-clean.ts` (`cleanString`, `cleanSize`, …) voor Sanity-strings in logica, classes en URL's.
+- Studio op `/admin`, niet `/studio`: de Studio-route gaat vóór `[...uri]` en zou een pagina met slug `studio` blokkeren.
 - `netlify.toml` stuurt alleen `/api/newsletter` naar de Netlify function. Geen `/api/*`-rewrite terugzetten: dan breekt `/api/preview`.

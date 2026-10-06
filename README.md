@@ -93,11 +93,6 @@ npm install
    - `MAILCHIMP_API_KEY`: Je Mailchimp API key (vind je in Account → Extras → API keys)
    - `MAILCHIMP_LIST_ID`: Je Mailchimp Audience/List ID (vind je in Audience → Settings → Audience name and defaults → Audience ID)
 
-5. **Voor Sanity Studio**, kopieer `studio/.env.example` naar `studio/.env.local`:
-   ```bash
-   cp studio/.env.example studio/.env.local
-   ```
-   Vul `SANITY_STUDIO_PROJECT_ID` en `SANITY_STUDIO_DATASET` in (moeten overeenkomen met root `.env`)
 
 **Tip – Afbeeldingen:** Upload afbeeldingen bij voorkeur in hoge resolutie (bijv. 1920px breed of groter voor full-width). De site optimaliseert ze automatisch via Astro Image (responsive srcset, AVIF).
 
@@ -109,16 +104,9 @@ npm run dev
 
 De website draait nu op `http://localhost:4321`
 
-### 7. Start Sanity Studio (optioneel)
+### 7. Sanity Studio
 
-In een aparte terminal:
-
-```bash
-cd studio
-npm run dev
-```
-
-Sanity Studio draait nu op `http://localhost:3333`
+De Studio is ingebouwd in de site en draait op `/admin` (lokaal `http://localhost:4321/admin`, online `https://narwalcreative.netlify.app/admin`).
 
 ## 📦 Beschikbare commando's
 
@@ -185,7 +173,7 @@ De site gebruikt **Astro's `ClientRouter`** (`astro:transitions`, zie `src/compo
 
 ## ✏️ Visual Editing (live preview)
 
-Volgens de standaard in `~/Code/_standards/SANITY.md`. In de Studio (`/studio`) toont de **Presentation tool** de site met drafts en klikbare overlays; bezoekers zien altijd de gepubliceerde content.
+Volgens de standaard in `~/Code/_standards/SANITY.md`. In de Studio (`/admin`) toont de **Presentation tool** de site met drafts en klikbare overlays; bezoekers zien altijd de gepubliceerde content.
 
 1. De Presentation tool roept `/api/preview` aan met een tijdelijk secret. Dat endpoint valideert het secret met `SANITY_API_READ_TOKEN` en zet de cookie `sanity-preview`.
 2. `src/middleware.ts` zet Visual Editing alleen aan als die cookie er is én de request uit een iframe komt (`Sec-Fetch-Dest: iframe`). In een gewone tab zie je dus de live site.

@@ -9,8 +9,15 @@ import { structure } from './src/sanity/deskStructure';
 import { linkField } from 'sanity-plugin-link-field';
 import seofields from 'sanity-plugin-seofields';
 
+// Studio in de site (/admin): preview op hetzelfde domein. In de gedeployde
+// Studio op *.sanity.studio wijst de preview naar de live site.
+const SITE_URL = 'https://narwalcreative.netlify.app';
 const previewOrigin =
-  typeof location !== 'undefined' ? location.origin : 'http://localhost:4321';
+  typeof location === 'undefined'
+    ? 'http://localhost:4321'
+    : location.hostname.endsWith('.sanity.studio')
+      ? SITE_URL
+      : location.origin;
 
 export default defineConfig({
   name: 'narwal-creative',
