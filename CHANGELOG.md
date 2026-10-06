@@ -9,6 +9,8 @@ Eerdere wijzigingen (vóór oktober 2026) staan alleen in de git-geschiedenis.
 
 ## [Unreleased]
 
+## [2026-10-06] (PR #37)
+
 ### Beveiliging
 - Drafts zijn niet langer voor iedereen zichtbaar via `?preview=true`. Visual Editing gaat nu alleen aan via draft mode: `/api/preview` valideert het preview-secret van de Studio (`@sanity/preview-url-secret`) en zet een httpOnly-cookie.
 
