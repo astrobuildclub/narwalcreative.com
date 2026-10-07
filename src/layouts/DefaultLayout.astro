@@ -10,7 +10,7 @@ import SiteFooter from '../components/SiteFooter.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import DarkMode from '../components/DarkMode.astro';
 import Preloader from '../components/Preloader.astro';
-import { VisualEditing } from '@sanity/astro/visual-editing';
+import VisualEditing from '../sanity/components/VisualEditing';
 
 import { getNavigation } from '../lib/sanity';
 
@@ -278,7 +278,7 @@ const visualEditingEnabled = Astro.locals.visualEditing;
     </div>
     <CookieConsent />
     <DarkMode />
-    <VisualEditing enabled={visualEditingEnabled} />
+    {visualEditingEnabled && <VisualEditing client:only="react" />}
     {
       visualEditingEnabled && (
         <script is:inline>

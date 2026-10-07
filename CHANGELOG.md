@@ -9,6 +9,12 @@ Eerdere wijzigingen (vóór oktober 2026) staan alleen in de git-geschiedenis.
 
 ## [Unreleased]
 
+### Opgelost
+- Presentation tool na navigatie: de adresbalk bleef op `/api/preview` staan, het documentpaneel toonde de vorige pagina en de Edit-toggle reageerde niet meer. Eigen `VisualEditing`-component (`src/sanity/components/VisualEditing.tsx`) met een history-adapter: elke pagina meldt zijn URL aan de Studio, en navigatie vanuit de Studio werkt.
+
+### Onderhoud
+- `@sanity/visual-editing` 2.15.4 als directe dependency (dezelfde versie die `@sanity/astro` gebruikt).
+
 ## [2026-10-06] (PR #38)
 
 ### Beveiliging
