@@ -11,6 +11,7 @@ import CookieConsent from '../components/CookieConsent.astro';
 import DarkMode from '../components/DarkMode.astro';
 import PageProgress from '../components/PageProgress.astro';
 import ThemeScript from '../components/ThemeScript.astro';
+import Intro from '../components/Intro.astro';
 import VisualEditing from '../sanity/components/VisualEditing';
 
 import { getNavigation } from '../lib/sanity';
@@ -154,6 +155,7 @@ const visualEditingEnabled = Astro.locals.visualEditing;
 
   <body>
     <PageProgress />
+    {!visualEditingEnabled && <Intro />}
     <SiteNavigation menu={primaryMenu} generalSettings={generalSettings} />
     <div class="page-stack" data-page style="view-transition-name: page-main;">
       <main class="page-layout pb-[var(--space-3xl)]">

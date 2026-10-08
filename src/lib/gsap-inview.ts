@@ -9,17 +9,23 @@ export function isInInitialView(el: Element) {
 }
 
 /**
- * Voer `fn` uit zodra de pagina klaar is om te tonen.
- * Tijdens een ClientRouter-navigatie staat `data-navigating` op <html>
- * (gezet door page-transitions.ts); dan wachten we op `page:transition-end`,
- * zodat content boven de vouw niet al tijdens de view transition onthult.
+ * Voer `fn` uit zodra de pagina klaar is om te tonen:
+ * - tijdens een ClientRouter-navigatie (`data-navigating` op <html>, gezet door
+ *   page-transitions.ts) pas na `page:transition-end`;
+ * - tijdens de intro bij de eerste load (`data-intro=""`, Intro.astro) pas
+ *   wanneer de overlay begint weg te faden (`intro:leave`).
+ * Zo onthult content boven de vouw niet al achter de transitie of de intro.
  */
 export function whenPageReady(fn: () => void) {
-  if (document.documentElement.hasAttribute('data-navigating')) {
-    document.addEventListener('page:transition-end', () => fn(), { once: true });
-    return;
-  }
-  fn();
+  const root = document.documentElement;
+  const waitFor = root.hasAttribute('data-navigating')
+    ? 'page:transition-end'
+    : root.getAttribute('data-intro') === ''
+      ? 'intro:leave'
+      : null;
+
+  if (waitFor) document.addEventListener(waitFor, () => fn(), { once: true });
+  else fn();
 }
 
 export function createInViewController() {

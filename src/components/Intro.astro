@@ -1,0 +1,99 @@
+---
+/*
+  Intro bij de eerste load, volgens _standards/TRANSITIONS.md §5.
+  Direct na <PageProgress /> in DefaultLayout; niet in de Presentation tool.
+
+  - Standaard display: none. Het inline-script zet `data-intro` op <html> alleen
+    bij de eerste pageview van de sessie (sessionStorage) en niet bij reduced motion.
+    Zonder JS dus geen intro.
+  - Puur CSS: de lijn vult in 0,7 s, de overlay fadet vanaf 0,8 s in 0,4 s weg
+    (±1,2 s totaal). Wacht nergens op: niet op afbeeldingen, fonts of window.load.
+  - Bij de start van de fade-out zet het script data-intro="leaving" en vuurt
+    `intro:leave`: whenPageReady() (gsap-inview.ts) laat reveals boven de vouw
+    daarop wachten. Na de fade-out gaat het attribuut weg.
+  - Geen onEnter-hook: een hook in page-transitions.ts schakelt de CSS view
+    transition uit, en de eerste astro:page-load komt pas na window.load.
+*/
+---
+
+<script is:inline>
+  (() => {
+    try {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (sessionStorage.getItem('intro-shown')) return;
+      sessionStorage.setItem('intro-shown', '1');
+
+      const root = document.documentElement;
+      root.setAttribute('data-intro', '');
+      const onStart = (e) => {
+        if (e.animationName !== 'intro-out') return;
+        document.removeEventListener('animationstart', onStart);
+        root.setAttribute('data-intro', 'leaving');
+        document.dispatchEvent(new Event('intro:leave'));
+      };
+      const onEnd = (e) => {
+        if (e.animationName !== 'intro-out') return;
+        document.removeEventListener('animationend', onEnd);
+        root.removeAttribute('data-intro');
+      };
+      document.addEventListener('animationstart', onStart);
+      document.addEventListener('animationend', onEnd);
+    } catch {}
+  })();
+</script>
+
+<div class="intro" aria-hidden="true">
+  <span class="intro__line"><span class="intro__fill"></span></span>
+</div>
+
+<style is:global>
+  .intro {
+    display: none;
+  }
+
+  :root[data-intro] .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    display: grid;
+    place-items: center;
+    background: var(--surface-bg, var(--white));
+    animation: intro-out 0.4s 0.8s ease-in forwards;
+  }
+
+  .intro__line {
+    position: relative;
+    inline-size: 12rem;
+    block-size: 4px;
+    overflow: hidden;
+    background: color-mix(in oklch, var(--black) 16%, transparent);
+  }
+
+  .intro__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--black);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: intro-fill 0.7s 0.05s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+
+  @keyframes intro-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes intro-out {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-intro] .intro {
+      display: none;
+    }
+  }
+</style>
