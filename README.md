@@ -232,6 +232,16 @@ narwal-astro-sanity/
 
 ## 🚢 Deployment
 
+### Branches
+
+| Branch | Deploy | URL |
+|---|---|---|
+| `main` | Productie | https://narwalcreative.netlify.app |
+| `staging` | Branch deploy (goedgekeurde features, nog niet live) | https://staging--narwalcreative.netlify.app |
+| PR's | Deploy preview | link in de PR |
+
+Features gaan via een PR naar `staging`. Naar `main` alleen gebundelde releases (PR `staging → main`) en hotfixes. Commits met alleen documentatie (`*.md`, `.github/`) starten geen build. Zie `~/Code/_standards/DEPLOY.md`.
+
 ### Netlify
 
 Het project is geconfigureerd voor Netlify deployment:

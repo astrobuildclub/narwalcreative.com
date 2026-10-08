@@ -29,7 +29,6 @@ yarn-error.log*
 
 # ignore build folders
 .netlify
-.github
 .astro
 
 # project documentation (local guidelines)
