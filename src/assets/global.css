@@ -31,9 +31,8 @@
 
 /* Typography is now handled by SCSS font module */
 
-/* View transitions: page-main crossfade + nav-transition-active coordination
-   now live in src/layouts/DefaultLayout.astro, next to the preloader logic
-   they're wired to. Kept out of here to avoid two competing definitions. */
+/* View transitions (page-main crossfade) staan in src/layouts/DefaultLayout.astro;
+   voortgangsbalk en hooks in src/lib/page-transitions.ts (zie _standards/TRANSITIONS.md). */
 
 img.fade-on-view {
   opacity: 0;

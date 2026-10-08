@@ -9,7 +9,7 @@ import SiteNavigation from '../components/SiteNavigation.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import DarkMode from '../components/DarkMode.astro';
-import Preloader from '../components/Preloader.astro';
+import PageProgress from '../components/PageProgress.astro';
 import VisualEditing from '../sanity/components/VisualEditing';
 
 import { getNavigation } from '../lib/sanity';
@@ -79,38 +79,6 @@ const visualEditingEnabled = Astro.locals.visualEditing;
           ).matches;
           const theme = stored || (prefersDark ? 'dark' : 'light');
           doc.setAttribute('data-theme', theme);
-          // Safari chokes on filter:blur/grayscale over video-heavy pages during
-          // ClientRouter navigations — use a cheap opacity dim instead.
-          const ua = navigator.userAgent;
-          if (/safari/i.test(ua) && !/chrome|chromium|android/i.test(ua)) {
-            doc.classList.add('is-safari');
-          }
-        } catch (e) {}
-      })();
-    </script>
-    <script is:inline>
-      (function () {
-        try {
-          if (sessionStorage.getItem('preloader-shown') === 'true') return;
-          if (
-            window.matchMedia &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ) {
-            return;
-          }
-          const navEntry =
-            typeof performance !== 'undefined' &&
-            performance.getEntriesByType &&
-            performance.getEntriesByType('navigation')[0];
-          const navType = navEntry?.type;
-          const legacyNavType =
-            typeof performance !== 'undefined' &&
-            performance.navigation &&
-            performance.navigation.type;
-          if (navType && navType !== 'navigate') return;
-          if (legacyNavType && legacyNavType !== 0) return;
-          document.documentElement.classList.add('preloader-active');
-          document.documentElement.classList.add('preloader-lock-scroll');
         } catch (e) {}
       })();
     </script>
@@ -121,9 +89,7 @@ const visualEditingEnabled = Astro.locals.visualEditing;
         --vt-new-duration: 220ms;
         --vt-new-delay: 30ms;
         --vt-snappy-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-        --nav-transition-blur: 2px;
-        --nav-transition-grayscale: 1;
-        --nav-overlay-bg: var(--surface-bg);
+        --progress-color: var(--black);
       }
 
       html,
@@ -191,64 +157,14 @@ const visualEditingEnabled = Astro.locals.visualEditing;
         ::view-transition-new(page-main) {
           animation: none !important;
         }
-
-        .page-stack {
-          transition: none;
-        }
-
-        :root.nav-transition-active .page-stack {
-          filter: none;
-          opacity: 1;
-        }
       }
 
-      :root.preloader-lock-scroll,
-      :root.preloader-lock-scroll body {
-        overflow: hidden;
-        overscroll-behavior: none;
-        touch-action: none;
-      }
-      .page-stack {
-        transition:
-          filter 320ms var(--vt-snappy-ease),
-          opacity 220ms var(--vt-snappy-ease);
-      }
-      :root.nav-transition-active .page-stack {
-        filter: blur(var(--nav-transition-blur))
-          grayscale(var(--nav-transition-grayscale));
-        will-change: filter;
-      }
-      /* Safari: skip filter — it freezes frames on video/carousel pages and
-         blocked finalizeNav which waited on rAF progress easing. */
-      :root.is-safari .page-stack {
-        transition: opacity 180ms var(--vt-snappy-ease);
-      }
-      :root.is-safari.nav-transition-active .page-stack {
-        filter: none;
-        will-change: opacity;
-        opacity: 0.55;
-      }
-      :root.preloader-active body > :not(#preloader) {
-        visibility: hidden;
-      }
-      :root.preloader-active #preloader {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: var(--surface-bg);
-        opacity: 1 !important;
-        pointer-events: auto !important;
-      }
-      :root[data-theme='dark'].preloader-active #preloader {
-        background: var(--surface-bg);
-      }
     </style>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <!-- CookieConsent CSS -->
     <link rel="stylesheet" href="/css/iframemanager.css" />
     <link rel="stylesheet" href="/css/cookieconsent.css" />
-    <link rel="stylesheet" href="/css/preloader.css" />
 
     <link
       rel="stylesheet"
@@ -268,9 +184,9 @@ const visualEditingEnabled = Astro.locals.visualEditing;
   </head>
 
   <body>
-    <Preloader />
+    <PageProgress />
     <SiteNavigation menu={primaryMenu} generalSettings={generalSettings} />
-    <div class="page-stack" style="view-transition-name: page-main;">
+    <div class="page-stack" data-page style="view-transition-name: page-main;">
       <main class="page-layout pb-[var(--space-3xl)]">
         <slot />
       </main>
