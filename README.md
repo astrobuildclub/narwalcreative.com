@@ -160,16 +160,17 @@ De site gebruikt **Astro's `ClientRouter`** (`astro:transitions`, zie `src/compo
 | --- | --- | --- |
 | Router | `src/components/SiteMeta.astro` | `<ClientRouter fallback="swap" />`, site-wide via `DefaultLayout.astro` |
 | Prefetch | `astro.config.mjs` | `viewport`-strategie: links prefetchen zodra ze in beeld scrollen, zodat swaps meestal instant aanvoelen |
-| Preloader / progress bar | `src/components/Preloader.astro` + `public/js/preloader.js` | Dunne topbar tijdens navigatie (`mode-nav`) + volledig scherm bij eerste page load (`mode-initial`); `transition:persist` zodat hij navigatie overleeft |
-| Vertrek-feedback | `src/layouts/DefaultLayout.astro` (CSS vars `--nav-transition-*`) + `preloader.js` (`startNav`) | Subtiele dim/blur op de oude pagina, ~60ms gedebounced zodat snelle/geprefetchte navigatie niet flitst |
-| Crossfade | `src/layouts/DefaultLayout.astro` (`::view-transition-old/new(page-main)`) | Named view transition op `<main>`, canonieke plek voor deze CSS (niet dupliceren in `global.css`) |
-| Coördinatie-event | `preloader.js` → `document.dispatchEvent(new CustomEvent('preloader:nav-complete'))` | Signaal dat de preloader écht klaar is; overige systemen wachten hierop i.p.v. meteen bij de DOM-swap te reageren |
-| Content reveal | `src/layouts/DefaultLayout.astro` (`initImageFadeInOnView`, `initStaggerOnView`, `initRevealOnView`) + `global.css` (`.fade-on-view`, `.stagger-on-view-item`, `.reveal-on-view`) | IntersectionObserver-gedreven fade/slide-in; content die al in beeld is bij binnenkomst wacht op `preloader:nav-complete` voor die reveal, met een safety-timeout zodat niets permanent onzichtbaar kan blijven |
-| Project thumbs | `src/components/ProjectCard.astro` (`data-reveal-children`) | Gebruikt hetzelfde reveal-systeem als hierboven — geen aparte animatie-library meer voor de thumbs |
+| Voortgangsbalk + hooks | `src/components/PageProgress.astro` + `src/lib/page-transitions.ts` | Dunne balk bovenin, pas na 150 ms (snelle navigaties tonen niets). Biedt `onLeave`/`onEnter` voor een eventuele GSAP-transitie en vuurt `page:transition-end`. Volgens `~/Code/_standards/TRANSITIONS.md` |
+| Crossfade | `src/layouts/DefaultLayout.astro` (`::view-transition-old/new(page-main)`) | Named view transition op `.page-stack[data-page]`, de enige transitie. Canonieke plek voor deze CSS (niet dupliceren in `global.css`) |
+| Intro (eerste load) | `src/components/Intro.astro` | 1× per sessie, ±1,2 s, puur CSS. Zonder JS, bij reduced motion en in de Presentation tool geen intro. Vuurt `intro:leave` als de overlay begint te faden |
+| Thema | `src/components/ThemeScript.astro` + `src/components/DarkMode.astro` | Zet `data-theme` vóór de eerste paint en opnieuw op `astro:after-swap` |
+| Smooth scroll | `src/lib/lenis.ts` | Eén Lenis-instantie; `stop()` op `astro:before-preparation`, `start()` op `astro:page-load` |
+| Content reveal | `src/lib/reveal-on-view.ts` + `global.css` (`.fade-on-view`, `.stagger-on-view-item`, `.reveal-on-view`) | IntersectionObserver-gedreven fade/slide-in. Wat bij binnenkomst al in beeld is, onthult via `whenPageReady()` (`src/lib/gsap-inview.ts`): na `page:transition-end` of `intro:leave` |
+| Project thumbs | `src/components/ProjectCard.astro` (`data-reveal-children`) | Gebruikt hetzelfde reveal-systeem als hierboven |
 
-**Volgorde bij een klik:** vertrek-feedback (dim/blur, gedebounced) → progress bar → DOM-swap + crossfade → preloader rondt af → pas dán animeert de nieuwe content (bv. de thumbs) in, in plaats van gelijktijdig met de preloader.
+**Volgorde bij een klik:** Lenis stopt → (na 150 ms) balk → DOM-swap + crossfade → `astro:page-load` → `page:transition-end` → content boven de vouw onthult. Geen timers die op elkaar wachten.
 
-**Toegankelijkheid:** alle bovenstaande animaties (dim/blur, crossfade, reveal-on-view) respecteren `prefers-reduced-motion: reduce` en tonen content dan direct zonder transitie. De ingebouwde route-announcer van `ClientRouter` blijft ongemoeid voor screenreader-gebruikers.
+**Toegankelijkheid:** crossfade, balk, intro en reveals respecteren `prefers-reduced-motion: reduce` en tonen content dan direct. De ingebouwde route-announcer van `ClientRouter` blijft ongemoeid voor screenreader-gebruikers; de balk is `aria-hidden`.
 
 ## ✏️ Visual Editing (live preview)
 

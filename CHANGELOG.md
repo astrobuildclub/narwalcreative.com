@@ -9,6 +9,18 @@ Eerdere wijzigingen (vóór oktober 2026) staan alleen in de git-geschiedenis.
 
 ## [Unreleased]
 
+### Gewijzigd
+- Paginatransities volgens `_standards/TRANSITIONS.md`: één CSS-crossfade, voortgangsbalk `PageProgress` + `src/lib/page-transitions.ts` (met fixes voor de swap van `<html>`-attributen, een late eerste `page-load` en dubbelklikken). Reveals boven de vouw starten op `page:transition-end` in plaats van de reveal-gate.
+- Eerste-load-preloader vervangen door `Intro.astro` volgens §5: 1× per sessie, ±1,2 s, puur CSS, niet bij reduced motion of in de Presentation tool, wacht niet op afbeeldingen.
+- Thema bij navigatie via `ThemeScript.astro` (`astro:after-swap`) in plaats van de `before-swap`-hack.
+- Lenis wordt één keer aangemaakt en rond navigaties gestopt/gestart in plaats van steeds opnieuw opgebouwd.
+- Reveal-scripts uit `DefaultLayout.astro` samengevoegd in `src/lib/reveal-on-view.ts`.
+
+### Verwijderd
+- `public/js/preloader.js`, `public/css/preloader.css`, `src/components/Preloader.astro`, `docs/preloader-blueprint.md`.
+- Blur/grayscale-filter tijdens navigatie (`nav-transition-active`) en de Safari-UA-sniff (`is-safari`).
+- Reveal-gate (`window.__navRevealGateOpen`, `window.__deferReveal`, safety-timer) en het event `preloader:nav-complete`.
+
 ## [2026-10-07] (PR #39)
 
 ### Opgelost
