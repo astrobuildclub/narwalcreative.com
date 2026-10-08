@@ -1,3 +1,17 @@
+/*
+  Lenis smooth scroll, gekoppeld aan de GSAP-ticker en ScrollTrigger.
+
+  Eén instantie voor de hele ClientRouter-levensduur (zie _standards/TRANSITIONS.md §4):
+  - astro:before-preparation → stop(): geen scroll-inertie tijdens het wisselen.
+  - astro:page-load          → start() + resize() + ScrollTrigger.refresh().
+  De scrollpositie zet Astro zelf (boven bij vooruit, hersteld bij terug); Lenis
+  neemt die over via zijn native scroll-listener, dus geen eigen scrollTo hier.
+
+  Bewust géén onLeave-hook uit page-transitions.ts: elke hook schakelt de CSS
+  view transition uit. En géén autoToggle: die werkt via inline overflow en
+  classes op <html>, en Astro vervangt de attributen van <html> bij elke swap.
+  stop()/start() zetten de lenis-classes zelf terug.
+*/
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -11,81 +25,27 @@ declare global {
   }
 }
 
-let lenis: Lenis | undefined;
-let tickerCallback: ((time: number) => void) | undefined;
-let unsubscribeScroll: (() => void) | undefined;
+const lenis = new Lenis({
+  autoRaf: false,
+  anchors: true,
+  allowNestedScroll: true,
+  stopInertiaOnNavigate: true,
+});
+window.__lenis = lenis;
 
-function isScrollLocked() {
-  return document.documentElement.classList.contains('preloader-lock-scroll');
-}
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time) => lenis.raf(time * 1000));
 
-function destroyLenis() {
-  if (tickerCallback) {
-    gsap.ticker.remove(tickerCallback);
-    tickerCallback = undefined;
-  }
-
-  unsubscribeScroll?.();
-  unsubscribeScroll = undefined;
-
-  if (!lenis) return;
-
-  lenis.destroy();
-  lenis = undefined;
-  window.__lenis = undefined;
-}
-
-function initLenis() {
-  destroyLenis();
-
-  const instance = new Lenis({
-    autoRaf: false,
-    anchors: true,
-    autoToggle: true,
-    allowNestedScroll: true,
-    stopInertiaOnNavigate: true,
-  });
-
-  lenis = instance;
-  window.__lenis = instance;
-
-  unsubscribeScroll = instance.on('scroll', ScrollTrigger.update);
-
-  tickerCallback = (time) => {
-    instance.raf(time * 1000);
-  };
-  gsap.ticker.add(tickerCallback);
-
-  if (isScrollLocked()) {
-    instance.stop();
-  }
-
+document.addEventListener('astro:before-preparation', () => lenis.stop());
+document.addEventListener('astro:page-load', () => {
+  lenis.start();
+  // Na de swap is de pagina-hoogte anders; wacht één frame op de layout.
   requestAnimationFrame(() => {
-    if (lenis !== instance) return;
-    instance.resize();
+    lenis.resize();
     ScrollTrigger.refresh();
   });
-}
-
-function startLenis() {
-  if (!lenis) {
-    initLenis();
-    return;
-  }
-
-  if (isScrollLocked()) return;
-
-  lenis.start();
-  lenis.resize();
-  ScrollTrigger.refresh();
-}
-
-document.addEventListener('astro:before-preparation', destroyLenis);
-document.addEventListener('astro:before-swap', destroyLenis);
-document.addEventListener('astro:page-load', initLenis);
-document.addEventListener('preloader:nav-complete', startLenis);
-window.addEventListener('beforeunload', destroyLenis);
+});
 
 export function getLenis() {
-  return lenis ?? window.__lenis;
+  return lenis;
 }

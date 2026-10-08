@@ -33,5 +33,6 @@ Lees eerst `README.md` voor context en `CHANGELOG.md` voor recente wijzigingen.
 - Studio op `/admin`, niet `/studio`: de Studio-route gaat vóór `[...uri]` en zou een pagina met slug `studio` blokkeren.
 - De preview-cookie is ondertekend met `SANITY_API_READ_TOKEN` (`src/sanity/lib/visual-editing.ts`); nooit terug naar een vaste waarde als `true`.
 - `<VisualEditing>` komt uit `src/sanity/components/VisualEditing.tsx`, niet uit `@sanity/astro`: die heeft geen history-adapter, waardoor de Presentation tool na navigatie de verkeerde URL en het verkeerde document toont.
+- Paginatransities volgens `~/Code/_standards/TRANSITIONS.md`: één CSS-crossfade, `PageProgress` + `src/lib/page-transitions.ts`, reveals op `page:transition-end` (via `whenPageReady()`). Geen eigen timers, `window.__…`-globals of tweede transitiesysteem toevoegen. Een `onLeave`/`onEnter`-hook schakelt de CSS-crossfade uit.
 - Page transitions (`ClientRouter`) staan in de Presentation tool uit via `data-astro-reload` (script in `DefaultLayout.astro`): de router haalt pagina's op via `fetch` en dan valt Visual Editing weg.
 - `netlify.toml` stuurt alleen `/api/newsletter` naar de Netlify function. Geen `/api/*`-rewrite terugzetten: dan breekt `/api/preview`.
