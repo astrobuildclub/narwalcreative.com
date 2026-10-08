@@ -9,6 +9,13 @@ Eerdere wijzigingen (vóór oktober 2026) staan alleen in de git-geschiedenis.
 
 ## [Unreleased]
 
+### Gewijzigd
+- Deploy-workflow volgens `_standards/DEPLOY.md`: features via PR naar `staging` (branch deploy op `staging--narwalcreative.netlify.app`), gebundelde releases naar `main`. Branch protection op `staging`.
+- `netlify.toml`: geen build bij commits met alleen documentatie.
+
+### Onderhoud
+- `.github/dependabot.yml`: wekelijkse updates naar `staging`, gegroepeerd (Astro, Sanity, minor/patch). `.github` stond in `.gitignore` (overblijfsel uit 2024) en is daaruit gehaald.
+
 ## [2026-10-07] (PR #39)
 
 ### Opgelost
