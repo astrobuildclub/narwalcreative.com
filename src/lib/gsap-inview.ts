@@ -1,7 +1,3 @@
-type DeferRevealWindow = Window & {
-  __deferReveal?: (fn: () => void) => void;
-};
-
 export function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -12,26 +8,18 @@ export function isInInitialView(el: Element) {
   return rect.top < vh * 0.92 && rect.bottom > 0;
 }
 
+/**
+ * Voer `fn` uit zodra de pagina klaar is om te tonen.
+ * Tijdens een ClientRouter-navigatie staat `data-navigating` op <html>
+ * (gezet door page-transitions.ts); dan wachten we op `page:transition-end`,
+ * zodat content boven de vouw niet al tijdens de view transition onthult.
+ */
 export function whenPageReady(fn: () => void) {
-  const run = () => {
-    const defer = (window as DeferRevealWindow).__deferReveal;
-    if (typeof defer === 'function') {
-      defer(fn);
-      return;
-    }
-    fn();
-  };
-
-  if (document.documentElement.classList.contains('preloader-active')) {
-    const onComplete = () => {
-      document.removeEventListener('preloader:nav-complete', onComplete);
-      run();
-    };
-    document.addEventListener('preloader:nav-complete', onComplete);
+  if (document.documentElement.hasAttribute('data-navigating')) {
+    document.addEventListener('page:transition-end', () => fn(), { once: true });
     return;
   }
-
-  run();
+  fn();
 }
 
 export function createInViewController() {
