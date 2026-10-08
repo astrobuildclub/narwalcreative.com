@@ -33,6 +33,8 @@ const run = (hooks: Set<Hook>, ctx: TransitionContext) =>
   Promise.all([...hooks].map((fn) => fn(ctx)));
 
 let current: TransitionContext | null = null;
+let swapped = false;
+let loaded = false; // eerste page-load (type "initial") al afgehandeld?
 let barTimer: ReturnType<typeof setTimeout> | undefined;
 
 document.addEventListener("astro:before-preparation", (event) => {
@@ -42,7 +44,9 @@ document.addEventListener("astro:before-preparation", (event) => {
     to: event.to,
     container: container(),
   };
+  swapped = false;
   root.toggleAttribute("data-navigating", true);
+  clearTimeout(barTimer); // snelle dubbelklik: geen tweede timer laten slingeren
   barTimer = setTimeout(() => root.setAttribute("data-progress", "loading"), BAR_DELAY_MS);
 
   if (reducedMotion() || leaveHooks.size === 0) return;
@@ -53,15 +57,35 @@ document.addEventListener("astro:before-preparation", (event) => {
   };
 });
 
+// Astro vervangt bij de swap alle attributen van <html> door die van de nieuwe pagina.
+// Neem onze status mee, anders verdwijnt de balk abrupt en ziet page-load geen navigatie.
+const STATE_ATTRS = ["data-navigating", "data-progress"];
+
 document.addEventListener("astro:before-swap", (event) => {
+  const next = event.newDocument.documentElement;
+  for (const name of STATE_ATTRS) {
+    const value = root.getAttribute(name);
+    if (value !== null) next.setAttribute(name, value);
+  }
   if (leaveHooks.size || enterHooks.size) event.viewTransition.skipTransition();
 });
 
+document.addEventListener("astro:after-swap", () => {
+  swapped = true;
+});
+
 document.addEventListener("astro:page-load", async () => {
+  // De eerste page-load vuurt Astro pas bij window.load. Klikt iemand eerder op een
+  // link, dan komt die event midden in of na de navigatie: dan negeren.
+  if (current ? !swapped : loaded) return;
+  loaded = true;
   clearTimeout(barTimer);
   if (root.getAttribute("data-progress") === "loading") {
     root.setAttribute("data-progress", "done");
-    setTimeout(() => root.removeAttribute("data-progress"), 400);
+    setTimeout(() => {
+      // Alleen weghalen als er intussen geen nieuwe navigatie loopt.
+      if (root.getAttribute("data-progress") === "done") root.removeAttribute("data-progress");
+    }, 400);
   }
 
   const ctx: TransitionContext = current
