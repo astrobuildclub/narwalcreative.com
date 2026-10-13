@@ -336,13 +336,6 @@ const termsAndConditionsUrl =
 
         const tryPlay = () => {
           if (played || token !== initToken) return;
-          if (
-            document.documentElement.classList.contains(
-              'preloader-lock-scroll',
-            )
-          ) {
-            return;
-          }
           if (!isNearPageBottom()) return;
 
           played = true;

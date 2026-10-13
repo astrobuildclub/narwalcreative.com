@@ -9,7 +9,9 @@ import SiteNavigation from '../components/SiteNavigation.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import DarkMode from '../components/DarkMode.astro';
-import Preloader from '../components/Preloader.astro';
+import PageProgress from '../components/PageProgress.astro';
+import ThemeScript from '../components/ThemeScript.astro';
+import Intro from '../components/Intro.astro';
 import VisualEditing from '../sanity/components/VisualEditing';
 
 import { getNavigation } from '../lib/sanity';
@@ -49,71 +51,7 @@ const visualEditingEnabled = Astro.locals.visualEditing;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <script is:inline>
-      // Carry current theme into the incoming document before swap
-      document.addEventListener('astro:before-swap', (event) => {
-        try {
-          const theme =
-            localStorage.getItem('theme') ||
-            document.documentElement.getAttribute('data-theme') ||
-            'light';
-          const bg =
-            getComputedStyle(document.body).backgroundColor ||
-            getComputedStyle(document.documentElement).backgroundColor ||
-            (theme === 'dark' ? 'rgb(12, 12, 12)' : '#fdfdfa');
-          event.newDocument.documentElement.setAttribute('data-theme', theme);
-          event.newDocument.documentElement.style.backgroundColor = bg;
-          if (event.newDocument.body) {
-            event.newDocument.body.style.backgroundColor = bg;
-          }
-        } catch (e) {}
-      });
-    </script>
-    <script is:inline>
-      (function () {
-        try {
-          const doc = document.documentElement;
-          const stored = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia(
-            '(prefers-color-scheme: dark)',
-          ).matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
-          doc.setAttribute('data-theme', theme);
-          // Safari chokes on filter:blur/grayscale over video-heavy pages during
-          // ClientRouter navigations — use a cheap opacity dim instead.
-          const ua = navigator.userAgent;
-          if (/safari/i.test(ua) && !/chrome|chromium|android/i.test(ua)) {
-            doc.classList.add('is-safari');
-          }
-        } catch (e) {}
-      })();
-    </script>
-    <script is:inline>
-      (function () {
-        try {
-          if (sessionStorage.getItem('preloader-shown') === 'true') return;
-          if (
-            window.matchMedia &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ) {
-            return;
-          }
-          const navEntry =
-            typeof performance !== 'undefined' &&
-            performance.getEntriesByType &&
-            performance.getEntriesByType('navigation')[0];
-          const navType = navEntry?.type;
-          const legacyNavType =
-            typeof performance !== 'undefined' &&
-            performance.navigation &&
-            performance.navigation.type;
-          if (navType && navType !== 'navigate') return;
-          if (legacyNavType && legacyNavType !== 0) return;
-          document.documentElement.classList.add('preloader-active');
-          document.documentElement.classList.add('preloader-lock-scroll');
-        } catch (e) {}
-      })();
-    </script>
+    <ThemeScript />
     <style is:global>
       :root {
         --surface-bg: var(--white, #fdfdfa);
@@ -121,9 +59,7 @@ const visualEditingEnabled = Astro.locals.visualEditing;
         --vt-new-duration: 220ms;
         --vt-new-delay: 30ms;
         --vt-snappy-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-        --nav-transition-blur: 2px;
-        --nav-transition-grayscale: 1;
-        --nav-overlay-bg: var(--surface-bg);
+        --progress-color: var(--black);
       }
 
       html,
@@ -191,64 +127,14 @@ const visualEditingEnabled = Astro.locals.visualEditing;
         ::view-transition-new(page-main) {
           animation: none !important;
         }
-
-        .page-stack {
-          transition: none;
-        }
-
-        :root.nav-transition-active .page-stack {
-          filter: none;
-          opacity: 1;
-        }
       }
 
-      :root.preloader-lock-scroll,
-      :root.preloader-lock-scroll body {
-        overflow: hidden;
-        overscroll-behavior: none;
-        touch-action: none;
-      }
-      .page-stack {
-        transition:
-          filter 320ms var(--vt-snappy-ease),
-          opacity 220ms var(--vt-snappy-ease);
-      }
-      :root.nav-transition-active .page-stack {
-        filter: blur(var(--nav-transition-blur))
-          grayscale(var(--nav-transition-grayscale));
-        will-change: filter;
-      }
-      /* Safari: skip filter — it freezes frames on video/carousel pages and
-         blocked finalizeNav which waited on rAF progress easing. */
-      :root.is-safari .page-stack {
-        transition: opacity 180ms var(--vt-snappy-ease);
-      }
-      :root.is-safari.nav-transition-active .page-stack {
-        filter: none;
-        will-change: opacity;
-        opacity: 0.55;
-      }
-      :root.preloader-active body > :not(#preloader) {
-        visibility: hidden;
-      }
-      :root.preloader-active #preloader {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: var(--surface-bg);
-        opacity: 1 !important;
-        pointer-events: auto !important;
-      }
-      :root[data-theme='dark'].preloader-active #preloader {
-        background: var(--surface-bg);
-      }
     </style>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <!-- CookieConsent CSS -->
     <link rel="stylesheet" href="/css/iframemanager.css" />
     <link rel="stylesheet" href="/css/cookieconsent.css" />
-    <link rel="stylesheet" href="/css/preloader.css" />
 
     <link
       rel="stylesheet"
@@ -268,9 +154,10 @@ const visualEditingEnabled = Astro.locals.visualEditing;
   </head>
 
   <body>
-    <Preloader />
+    <PageProgress />
+    {!visualEditingEnabled && <Intro />}
     <SiteNavigation menu={primaryMenu} generalSettings={generalSettings} />
-    <div class="page-stack" style="view-transition-name: page-main;">
+    <div class="page-stack" data-page style="view-transition-name: page-main;">
       <main class="page-layout pb-[var(--space-3xl)]">
         <slot />
       </main>
@@ -480,324 +367,8 @@ const visualEditingEnabled = Astro.locals.visualEditing;
         document.addEventListener('astro:page-load', refreshMutedVideos);
       })();
     </script>
-    <script is:inline>
-      // Shared gate for the reveal-on-view systems below: while a navigation
-      // is in flight, above-the-fold content should not reveal immediately at
-      // swap time — it should wait until the preloader has actually finished,
-      // so the "arrival" reads as preloader-then-content instead of both at once.
-      // Elements found via scroll (IntersectionObserver, below-the-fold) never
-      // go through this gate — only the "already in view at init time" fastpath does.
-      (function () {
-        window.__navRevealGateOpen = true;
-
-        let pending = [];
-        let safetyTimer = null;
-
-        function flushPending() {
-          const toRun = pending;
-          pending = [];
-          if (safetyTimer) {
-            clearTimeout(safetyTimer);
-            safetyTimer = null;
-          }
-          toRun.forEach((fn) => fn());
-        }
-
-        window.__deferReveal = function (fn) {
-          if (window.__navRevealGateOpen) {
-            fn();
-            return;
-          }
-          pending.push(fn);
-          // Safety net: comfortably longer than the preloader's own hard cap
-          // (navMax + 250 in preloader.js), so content can never stay stuck invisible.
-          if (!safetyTimer) {
-            safetyTimer = setTimeout(flushPending, 3000);
-          }
-        };
-
-        document.addEventListener('astro:before-preparation', () => {
-          window.__navRevealGateOpen = false;
-        });
-        document.addEventListener('preloader:nav-complete', () => {
-          window.__navRevealGateOpen = true;
-          flushPending();
-        });
-      })();
-    </script>
-    <script is:inline>
-      (function () {
-        const processed = 'data-fade-on-view-ready';
-        let observer = null;
-
-        function isInInitialView(el) {
-          const rect = el.getBoundingClientRect();
-          const vh = window.innerHeight || document.documentElement.clientHeight;
-          return rect.top < vh * 0.92 && rect.bottom > 0;
-        }
-
-        function disconnect() {
-          observer?.disconnect();
-          observer = null;
-        }
-
-        function initImageFadeInOnView() {
-          if (
-            window.matchMedia &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ) {
-            return;
-          }
-
-          const images = document.querySelectorAll(
-            `main img:not([${processed}]):not([data-no-fade-on-view])`,
-          );
-          if (!images.length) return;
-
-          if (!('IntersectionObserver' in window)) {
-            images.forEach((img) => {
-              img.setAttribute(processed, 'true');
-              img.classList.add('fade-on-view', 'is-visible');
-            });
-            return;
-          }
-
-          if (!observer) {
-            observer = new IntersectionObserver(
-              (entries, io) => {
-                entries.forEach((entry) => {
-                  if (!entry.isIntersecting) return;
-                  entry.target.classList.add('is-visible');
-                  io.unobserve(entry.target);
-                });
-              },
-              {
-                threshold: 0.15,
-                rootMargin: '0px 0px -8% 0px',
-              },
-            );
-          }
-
-          images.forEach((img) => {
-            img.setAttribute(processed, 'true');
-            img.classList.add('fade-on-view');
-
-            if (isInInitialView(img)) {
-              window.__deferReveal(() => img.classList.add('is-visible'));
-              return;
-            }
-
-            observer.observe(img);
-          });
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', initImageFadeInOnView, {
-            once: true,
-          });
-        } else {
-          initImageFadeInOnView();
-        }
-
-        document.addEventListener('astro:before-swap', disconnect);
-        document.addEventListener('astro:page-load', initImageFadeInOnView);
-      })();
-    </script>
-    <script is:inline>
-      (function () {
-        const processed = 'data-stagger-ready';
-        let observer = null;
-
-        function isInInitialView(el) {
-          const rect = el.getBoundingClientRect();
-          const vh = window.innerHeight || document.documentElement.clientHeight;
-          return rect.top < vh * 0.92 && rect.bottom > 0;
-        }
-
-        function getTargets(container) {
-          const selector = container.getAttribute('data-stagger-selector');
-          if (selector) {
-            try {
-              const selected = Array.from(container.querySelectorAll(selector));
-              if (selected.length) return selected;
-            } catch (e) {}
-          }
-          return Array.from(container.children);
-        }
-
-        function disconnect() {
-          observer?.disconnect();
-          observer = null;
-        }
-
-        function initStaggerOnView() {
-          const containers = document.querySelectorAll(
-            `[data-stagger-on-view]:not([${processed}])`,
-          );
-          if (!containers.length) return;
-
-          const reducedMotion =
-            window.matchMedia &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-          if (reducedMotion || !('IntersectionObserver' in window)) {
-            containers.forEach((container) => {
-              const targets = getTargets(container);
-              targets.forEach((target, index) => {
-                target.classList.add('stagger-on-view-item');
-                target.style.setProperty('--stagger-index', String(index));
-              });
-              container.classList.add('is-visible');
-              container.setAttribute(processed, 'true');
-            });
-            return;
-          }
-
-          if (!observer) {
-            observer = new IntersectionObserver(
-              (entries, io) => {
-                entries.forEach((entry) => {
-                  if (!entry.isIntersecting) return;
-                  entry.target.classList.add('is-visible');
-                  io.unobserve(entry.target);
-                });
-              },
-              {
-                threshold: 0.12,
-                rootMargin: '0px 0px -8% 0px',
-              },
-            );
-          }
-
-          containers.forEach((container) => {
-            const targets = getTargets(container);
-            targets.forEach((target, index) => {
-              target.classList.add('stagger-on-view-item');
-              target.style.setProperty('--stagger-index', String(index));
-            });
-
-            container.setAttribute(processed, 'true');
-
-            if (isInInitialView(container)) {
-              window.__deferReveal(() => container.classList.add('is-visible'));
-              return;
-            }
-
-            observer.observe(container);
-          });
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', initStaggerOnView, {
-            once: true,
-          });
-        } else {
-          initStaggerOnView();
-        }
-
-        document.addEventListener('astro:before-swap', disconnect);
-        document.addEventListener('astro:page-load', initStaggerOnView);
-      })();
-    </script>
-    <script is:inline>
-      (function () {
-        const processed = 'data-reveal-ready';
-        const containerProcessed = 'data-reveal-container-ready';
-        let observer = null;
-
-        function isInInitialView(el) {
-          const rect = el.getBoundingClientRect();
-          const vh = window.innerHeight || document.documentElement.clientHeight;
-          return rect.top < vh * 0.92 && rect.bottom > 0;
-        }
-
-        function disconnect() {
-          observer?.disconnect();
-          observer = null;
-        }
-
-        function initRevealOnView() {
-          const containers = document.querySelectorAll(
-            `[data-reveal-children]:not([${containerProcessed}])`,
-          );
-
-          containers.forEach((container) => {
-            const selector =
-              container.getAttribute('data-reveal-children') || ':scope > *';
-            const step = Number(container.getAttribute('data-reveal-step') || 0);
-            let items = [];
-
-            try {
-              items = Array.from(container.querySelectorAll(selector));
-            } catch (e) {
-              items = Array.from(container.children);
-            }
-
-            items.forEach((item, index) => {
-              item.classList.add('reveal-on-view');
-              item.setAttribute('data-reveal-on-view', '');
-              if (step > 0) {
-                item.style.setProperty('--reveal-delay', `${index * step}ms`);
-              }
-            });
-
-            container.setAttribute(containerProcessed, 'true');
-          });
-
-          const targets = document.querySelectorAll(
-            `[data-reveal-on-view]:not([${processed}])`,
-          );
-          if (!targets.length) return;
-
-          const reducedMotion =
-            window.matchMedia &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-          if (reducedMotion || !('IntersectionObserver' in window)) {
-            targets.forEach((target) => {
-              target.classList.add('is-visible');
-              target.setAttribute(processed, 'true');
-            });
-            return;
-          }
-
-          if (!observer) {
-            observer = new IntersectionObserver(
-              (entries, io) => {
-                entries.forEach((entry) => {
-                  if (!entry.isIntersecting) return;
-                  entry.target.classList.add('is-visible');
-                  io.unobserve(entry.target);
-                });
-              },
-              {
-                threshold: 0.12,
-                rootMargin: '0px 0px -8% 0px',
-              },
-            );
-          }
-
-          targets.forEach((target) => {
-            target.setAttribute(processed, 'true');
-            if (isInInitialView(target)) {
-              window.__deferReveal(() => target.classList.add('is-visible'));
-              return;
-            }
-            observer.observe(target);
-          });
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', initRevealOnView, {
-            once: true,
-          });
-        } else {
-          initRevealOnView();
-        }
-
-        document.addEventListener('astro:before-swap', disconnect);
-        document.addEventListener('astro:page-load', initRevealOnView);
-      })();
+    <script>
+      import '../lib/reveal-on-view';
     </script>
   </body>
 </html>

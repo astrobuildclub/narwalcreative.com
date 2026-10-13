@@ -1,7 +1,3 @@
-type DeferRevealWindow = Window & {
-  __deferReveal?: (fn: () => void) => void;
-};
-
 export function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -12,26 +8,24 @@ export function isInInitialView(el: Element) {
   return rect.top < vh * 0.92 && rect.bottom > 0;
 }
 
+/**
+ * Voer `fn` uit zodra de pagina klaar is om te tonen:
+ * - tijdens een ClientRouter-navigatie (`data-navigating` op <html>, gezet door
+ *   page-transitions.ts) pas na `page:transition-end`;
+ * - tijdens de intro bij de eerste load (`data-intro=""`, Intro.astro) pas
+ *   wanneer de overlay begint weg te faden (`intro:leave`).
+ * Zo onthult content boven de vouw niet al achter de transitie of de intro.
+ */
 export function whenPageReady(fn: () => void) {
-  const run = () => {
-    const defer = (window as DeferRevealWindow).__deferReveal;
-    if (typeof defer === 'function') {
-      defer(fn);
-      return;
-    }
-    fn();
-  };
+  const root = document.documentElement;
+  const waitFor = root.hasAttribute('data-navigating')
+    ? 'page:transition-end'
+    : root.getAttribute('data-intro') === ''
+      ? 'intro:leave'
+      : null;
 
-  if (document.documentElement.classList.contains('preloader-active')) {
-    const onComplete = () => {
-      document.removeEventListener('preloader:nav-complete', onComplete);
-      run();
-    };
-    document.addEventListener('preloader:nav-complete', onComplete);
-    return;
-  }
-
-  run();
+  if (waitFor) document.addEventListener(waitFor, () => fn(), { once: true });
+  else fn();
 }
 
 export function createInViewController() {

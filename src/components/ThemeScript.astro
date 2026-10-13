@@ -1,0 +1,31 @@
+---
+/*
+  In <head> van DefaultLayout, vóór de CSS. Patroon uit _standards/snippets/ThemeScript.astro.
+  Zet het thema vóór de eerste paint en opnieuw na elke ClientRouter-swap
+  (Astro vervangt dan de attributen van <html>). astro:after-swap draait vóór de
+  snapshot van de nieuwe pagina, dus geen flits en geen achtergrondkleur-hack nodig.
+
+  Afwijking van de snippet: zonder opgeslagen keuze zetten we toch expliciet
+  light/dark op basis van het systeem, want DarkMode.astro en de toggle-styles
+  gaan uit van data-theme="light" | "dark".
+*/
+---
+
+<script is:inline>
+  (() => {
+    const apply = () => {
+      try {
+        const stored = localStorage.getItem('theme');
+        const theme =
+          stored === 'light' || stored === 'dark'
+            ? stored
+            : matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+        document.documentElement.dataset.theme = theme;
+      } catch {}
+    };
+    apply();
+    document.addEventListener('astro:after-swap', apply);
+  })();
+</script>
